@@ -1,0 +1,99 @@
+
+library(gtools) #used to calculate permutation
+library(reshape)
+library(dplyr)
+library(arules)
+
+get_occurrences <- function(item_names,splt){
+  names_matrix <- item_names
+  if(!is.matrix(item_names))
+    names_matrix <- matrix(item_names)
+  result <- c()
+  for (name_index in 1:nrow(names_matrix)) {
+    name_row <- names_matrix[name_index,]
+    result[name_index] <- 0
+    for (tran_index in 1:length(splt)) {
+      transaction <- splt[tran_index]
+      if(length(intersect(name_row,transaction[[1]])) >= length(name_row))
+      {
+        result[name_index] <-result[name_index]+1
+      }
+    }
+  }
+  return(result)
+}
+second<-function(path){
+  min_support <-0.125
+  min_confidince <-0.2
+  file <- read.csv(path,stringsAsFactors=FALSE)
+  cleanedData1<-strsplit(as.vector(file$foods), ',')
+  numberOfTransactions<-length(cleanedData1)
+  cleanedData2<-unique(unlist(cleanedData1))
+  single_items <- data.frame(item = cleanedData2, stringsAsFactors = FALSE )
+  single_items <- mutate(single_items,support = get_occurrences(item,cleanedData1)/numberOfTransactions )
+  single_items <- filter(single_items,support >= min_support)
+  double_combinations_matrix <- combn(single_items$item,2)
+  double_combinations_matrix
+  double_items <- data.frame(item1=double_combinations_matrix[1,],
+                             item2=double_combinations_matrix[2,],stringsAsFactors = FALSE)
+  double_items <- mutate(double_items,support = get_occurrences(cbind(item1,item2),cleanedData1)/numberOfTransactions)
+  double_items <- filter(double_items,support>=min_support)
+  double_items
+  double_items<-as.matrix(double_items)
+  double_items
+}
+
+third<-function(path){
+  min_support <-0.125
+  min_confidince <-0.2
+  file <- read.csv(path,stringsAsFactors=FALSE)
+  cleanedData1<-strsplit(as.vector(file$foods), ',')
+  numberOfTransactions<-length(cleanedData1)
+  cleanedData2<-unique(unlist(cleanedData1))
+  single_items <- data.frame(item = cleanedData2, stringsAsFactors = FALSE )
+  single_items <- mutate(single_items,support = get_occurrences(item,cleanedData1)/numberOfTransactions )
+  single_items <- filter(single_items,support >= min_support)
+  double_combinations_matrix <- combn(single_items$item,2)
+  double_combinations_matrix
+  double_items <- data.frame(item1=double_combinations_matrix[1,],
+                             item2=double_combinations_matrix[2,],stringsAsFactors = FALSE)
+  double_items <- mutate(double_items,support = get_occurrences(cbind(item1,item2),cleanedData1)/numberOfTransactions)
+  double_items <- filter(double_items,support>=min_support)
+  double_items
+  all_double_items<-union(double_items$item1 ,double_items$item2)
+  triple_combinations_matrix <- combn(all_double_items,3)
+  triple_items <- data.frame(
+    item1=triple_combinations_matrix[1,],
+    item2=triple_combinations_matrix[2,],
+    item3=triple_combinations_matrix[3,],
+    stringsAsFactors = FALSE)
+  triple_items <- mutate(triple_items,support = get_occurrences(cbind(item1,item2,item3),cleanedData1)/numberOfTransactions)
+  triple_items <- filter(triple_items,support>=min_support)
+  triple_items
+  triple_items<-as.matrix(triple_items)
+  triple_items 
+}
+
+anyITeration<-function(path,Niterations){
+  
+}
+
+MostOrdered<-function(path){
+  min_support <-0.125
+  min_confidince <-0.2
+  file <- read.csv(path,stringsAsFactors=FALSE)
+  cleanedData1<-strsplit(as.vector(file$foods), ',')
+  cleanedData2<-unique(unlist(cleanedData1))
+ # data<-as.vector(cleanedData2)
+#  data
+  #occrance_data_vector<-get_occurrences(data,cleanedData1)
+  single_items <- data.frame(item = cleanedData2, stringsAsFactors = FALSE )
+    dataANDOccrnce<- mutate(single_items,occur=get_occurrences(single_items$item,cleanedData1))
+ arranged<-arrange(dataANDOccrnce,desc(occur))
+  arranged
+  arranged<-as.matrix(arranged)
+  arranged
+  
+}
+m<-third("C:/Lokanta/restaurant/taha's/branches/fish/Meals/meals orders.csv")
+m
